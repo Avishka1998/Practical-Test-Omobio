@@ -1,54 +1,94 @@
-import React, { useState } from "react";
+import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { PostData } from "../services/PostData";
 
-function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+class Login extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      username: "",
+      password: "",
+      redirectToReferrer: false,
+      logged: "",
+    };
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleUsername = this.handleUsername.bind(this);
+    this.handlePassword = this.handlePassword.bind(this);
+    this.logout = this.logout.bind(this);
+  }
 
-  const handleSubmit = () => {
-    console.log("djdj");
-  };
+  handleSubmit() {
+    if (this.state.username && this.state.password) {
+      PostData("login", this.state).then((result) => {
+        let responseJson = result;
+        if (responseJson.userData) {
+          sessionStorage.setItem("userData", JSON.stringify(responseJson));
+          this.setState({ redirectToReferrer: true });
+          this.setState({ logged: responseJson.userData });
+        } else alert(result.error);
+      });
+    }
+  }
 
-  const handleUsername = (e) => {
-    setUsername(e.target.value);
-  };
+  handleUsername(e) {
+    this.setState({ username: e.target.value });
+  }
 
-  const handlePassword = (e) => {
-    setPassword(e.target.value);
-  };
+  handlePassword(e) {
+    this.setState({ password: e.target.value });
+  }
 
-  return (
-    <div style={{ width: "30%" }}>
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
+  logout() {
+    this.setState({ logged: "" });
+  }
+
+  render() {
+    if (this.state.logged) {
+      return (
         <div>
-          <label>Username</label>
+          <h1>Welcome!</h1>
+          <h3>ID: {this.state.logged.id}</h3>
+          <h3>Name: {this.state.logged.name}</h3>
+          <h3>Email: {this.state.logged.email}</h3>
+          <input type="submit" value="Logout" onClick={this.logout} />
+        </div>
+      );
+    } else {
+      return (
+        <div style={{ width: "30%" }}>
+          <h1>Login</h1>
+          <div>
+            <label>Username</label>
+            <input
+              type="text"
+              className="form-control"
+              id="username"
+              placeholder="Enter Username"
+              value={this.state.username}
+              onChange={this.handleUsername}
+            />
+          </div>
+          <div>
+            <label>Password</label>
+            <input
+              type="password"
+              className="form-control"
+              id="password"
+              placeholder="Password"
+              value={this.state.password}
+              onChange={this.handlePassword}
+            />
+          </div>
           <input
-            type="text"
-            className="form-control"
-            id="username"
-            placeholder="Enter Username"
-            value={username}
-            onChange={handleUsername}
+            type="submit"
+            className="btn btn-primary mt-3"
+            value="Login"
+            onClick={this.handleSubmit}
           />
         </div>
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            className="form-control"
-            id="password"
-            placeholder="Password"
-            value={password}
-            onChange={handlePassword}
-          />
-        </div>
-        <button type="submit" className="btn btn-primary">
-          Submit
-        </button>
-      </form>
-    </div>
-  );
+      );
+    }
+  }
 }
 
 export default Login;
